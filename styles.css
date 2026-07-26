@@ -79,7 +79,7 @@ body {
     background: var(--color-bg);
     color: var(--color-text);
     line-height: 1.7;
-    font-weight: 300;
+    font-weight: 50;
     overflow-x: hidden;
 }
 
