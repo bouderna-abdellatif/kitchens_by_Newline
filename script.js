@@ -3,6 +3,52 @@
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+    const VERSION_ENDPOINT = 'version.json';
+    const LAST_SEEN_VERSION_KEY = 'kitchensByNewline.siteVersion';
+    const LAST_AUTO_REFRESH_KEY = 'kitchensByNewline.lastAutoRefreshVersion';
+
+    const forceRefreshForVersion = (version) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('v', version);
+        window.location.replace(url.toString());
+    };
+
+    const checkForDeploymentUpdate = async () => {
+        try {
+            const response = await fetch(`${VERSION_ENDPOINT}?t=${Date.now()}`, { cache: 'no-store' });
+            if (!response.ok) return;
+
+            const payload = await response.json();
+            const deployedVersion = typeof payload.version === 'string' ? payload.version.trim() : '';
+            if (!deployedVersion) return;
+
+            const lastSeenVersion = localStorage.getItem(LAST_SEEN_VERSION_KEY);
+            if (!lastSeenVersion) {
+                localStorage.setItem(LAST_SEEN_VERSION_KEY, deployedVersion);
+                return;
+            }
+
+            if (lastSeenVersion !== deployedVersion) {
+                localStorage.setItem(LAST_SEEN_VERSION_KEY, deployedVersion);
+                const lastAutoRefreshVersion = localStorage.getItem(LAST_AUTO_REFRESH_KEY);
+
+                if (lastAutoRefreshVersion !== deployedVersion) {
+                    localStorage.setItem(LAST_AUTO_REFRESH_KEY, deployedVersion);
+                    forceRefreshForVersion(deployedVersion);
+                }
+            }
+        } catch (error) {
+            // Keep silent: failed checks should not affect UX.
+        }
+    };
+
+    checkForDeploymentUpdate();
+    setInterval(checkForDeploymentUpdate, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            checkForDeploymentUpdate();
+        }
+    });
 
     // ── Preloader ─────────────────────────────────────────────
     const preloader = document.getElementById('preloader');
