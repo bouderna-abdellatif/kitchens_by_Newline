@@ -143,6 +143,15 @@ input, textarea, select {
     font-weight: 300;
     color: var(--color-text);
     letter-spacing: 0.05em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.preloader-logo-img {
+    height: 100px;
+    width: auto;
+    filter: brightness(1.1);
 }
 
 .preloader-slash {
